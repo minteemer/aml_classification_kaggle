@@ -13,10 +13,7 @@ X = train.drop('OpenStatus', axis=1)
 
 # TODO: analyze dates
 # But for now simply drop them
-X = X.drop('PostClosedDate', axis=1) \
-    .drop('PostCreationDate', axis=1) \
-    .drop('OwnerUserId', axis=1) \
-    .drop('PostId', axis=1)
+X = X.drop(['PostClosedDate', 'PostCreationDate', 'OwnerUserId', 'PostId'], axis=1)
 
 
 # prepare account creation dates
@@ -32,26 +29,29 @@ X["OwnerCreationDate"] = (creation_timestamps - creation_timestamps.mean()) / cr
 
 # TODO: analyze titles and bodyMarkdowns considering tags and not only
 # But for now simply drop them
-X = X.drop('Title', axis=1).drop('BodyMarkdown', axis=1)
+
+text_X = X[['Title', 'BodyMarkdown']]
+X = X.drop(['Title', 'BodyMarkdown'], axis=1)
 
 # Creating new column counting tags (more tags -> better post)
-X['Tag1'] = X['Tag1'].map(lambda x: 0 if isinstance(x, float) else 1)
-X['Tag2'] = X['Tag2'].map(lambda x: 0 if isinstance(x, float) else 1)
-X['Tag3'] = X['Tag3'].map(lambda x: 0 if isinstance(x, float) else 1)
-X['Tag4'] = X['Tag4'].map(lambda x: 0 if isinstance(x, float) else 1)
-X['Tag5'] = X['Tag5'].map(lambda x: 0 if isinstance(x, float) else 1)
-count_tags = []
-for index, row in X.iterrows():
-    count_tags.append(row['Tag1'] + row['Tag2'] + row['Tag3'] + row['Tag4'] + row['Tag5'])
-X['CountTags'] = count_tags
-X = X.drop('Tag1', axis=1).drop('Tag2', axis=1).drop('Tag3', axis=1) \
-    .drop('Tag4', axis=1).drop('Tag5', axis=1)
+for tag_index in ['Tag1', 'Tag2', 'Tag3', 'Tag4', 'Tag5']:
+    X[tag_index] = X[tag_index].map(lambda x: "" if isinstance(x, float) else x)
+
+tags = (X['Tag1'] + " " + X['Tag2'] + " " + X['Tag3'] + " " + X['Tag4'] + " " + X['Tag5']).str.strip()
+text_X['Tags'] = pd.Series(tags)
+
+X['CountTags'] = tags.map(lambda tags_str: len(tags_str.split(" ")))
+X = X.drop(['Tag1', 'Tag2', 'Tag3', 'Tag4', 'Tag5'], axis=1)
 
 
-def get_normalised_data():
+def get_normalised_numerical_data():
     X_scaled = preprocessing.MinMaxScaler().fit_transform(X.values)
     return train_test_split(pd.DataFrame(X_scaled), Y, test_size=TEST_SIZE)
 
 
-def get_data():
+def get_numerical_data():
     return train_test_split(X, Y, test_size=TEST_SIZE)
+
+
+def get_text_data():
+    return train_test_split(text_X, Y, test_size=TEST_SIZE)

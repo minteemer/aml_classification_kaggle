@@ -7,7 +7,7 @@ from sklearn.neural_network import MLPClassifier
 
 import data_preparation
 
-X_train, X_test, Y_train, Y_test = data_preparation.get_data()
+X_train, X_test, Y_train, Y_test = data_preparation.get_numerical_data()
 
 m = SGDClassifier(loss="log", penalty="l2", max_iter=4, alpha=0.1)
 m.fit(X_train, Y_train)
