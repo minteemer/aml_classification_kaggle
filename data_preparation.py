@@ -34,14 +34,14 @@ def prepare(X):
 
 
 def get_train_data():
-    Z = pd.read_csv('train.csv', skipinitialspace=True, sep=',', encoding='latin', index_col='PostId')
+    Z = pd.read_csv('train.csv', skipinitialspace=True, sep=',', index_col='PostId')
     X = prepare(Z.drop('OpenStatus', axis=1))
     Y = Z['OpenStatus']
     return X, Y
 
 
 def get_test_data():
-    return prepare(pd.read_csv('test.csv', skipinitialspace=True, sep=',', encoding='latin', index_col='PostId'))
+    return prepare(pd.read_csv('test.csv', skipinitialspace=True, sep=',', index_col='PostId'))
 
 # def get_normalised_numerical_data():
 #     X_scaled = preprocessing.MinMaxScaler().fit_transform(X.values)

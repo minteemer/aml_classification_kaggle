@@ -1,29 +1,77 @@
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
-from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.pipeline import Pipeline, make_pipeline
-from sklearn.metrics import accuracy_score
 from sklearn.linear_model import SGDClassifier, LogisticRegression
-from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.preprocessing import FunctionTransformer, MultiLabelBinarizer, OneHotEncoder, MinMaxScaler, StandardScaler
 from sklearn.svm import LinearSVC
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import VotingClassifier
-from sklearn.naive_bayes import GaussianNB
 from sklearn.compose import ColumnTransformer, make_column_transformer
+
+import pandas as pd
+
 import testing
 
-if __name__ == '__main__':
-    clf1 = SGDClassifier(alpha=0.01, loss='modified_huber', penalty='none')
-    clf2 = LogisticRegression(solver='lbfgs', multi_class='multinomial', random_state=1)
-    clf3 = LinearSVC()
-    clf = make_pipeline(
+
+def ensemble_models():
+    testing.prepare_ensemble_data()
+
+    clf1 = make_pipeline(
         make_column_transformer(
             ('Title', make_pipeline(CountVectorizer(), TfidfTransformer())),
             ('BodyMarkdown', make_pipeline(CountVectorizer(), TfidfTransformer())),
-            ('Tags', CountVectorizer()),
+            ('Tags', make_pipeline(CountVectorizer(), TfidfTransformer())),
             (['ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime', 'OwnerCreationDate'], MinMaxScaler()),
         ),
-        VotingClassifier(estimators=[('sgd', clf1), ('lr', clf2), ('svc', clf3)], voting='hard'),
+        SGDClassifier(loss='log', alpha=0.0001, penalty='l2', power_t=0.15),
     )
+    Y_hat1 = testing.single_test(clf1)
+    print('--- SGD DONE ---')
 
-    testing.cv(clf)
+    clf2 = make_pipeline(
+        make_column_transformer(
+            ('Title', make_pipeline(CountVectorizer(), TfidfTransformer())),
+            ('BodyMarkdown', make_pipeline(CountVectorizer(), TfidfTransformer())),
+            ('Tags', make_pipeline(CountVectorizer(), TfidfTransformer())),
+            (['ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime', 'OwnerCreationDate'], MinMaxScaler()),
+        ),
+        LogisticRegression(penalty='l2', tol=0.0001, solver='liblinear', multi_class='ovr', C=0.3),
+    )
+    Y_hat2 = testing.single_test(clf2)
+    print('--- Logistic DONE ---')
+
+    clf3 = make_pipeline(
+        make_column_transformer(
+            ('Title', make_pipeline(CountVectorizer(), TfidfTransformer())),
+            ('BodyMarkdown', make_pipeline(CountVectorizer(), TfidfTransformer())),
+            ('Tags', make_pipeline(CountVectorizer(), TfidfTransformer())),
+            (['ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime', 'OwnerCreationDate'], MinMaxScaler()),
+        ),
+        LinearSVC(C=0.1),
+    )
+    Y_hat3 = testing.single_test(clf3)
+    print('--- SVC DONE ---')
+
+    Y_hat_matrix = pd.DataFrame(data={'Y_hat1': Y_hat1, 'Y_hat2': Y_hat2, 'Y_hat3': Y_hat3})
+    testing.test_y_hat(Y_hat_matrix, SGDClassifier())
+    print('--- Super model SGD DONE ---')
+
+
+def voting():
+    clf1 = SGDClassifier(loss='log', alpha=0.0001, penalty='l2', power_t=0.15)
+    clf2 = LogisticRegression(penalty='l2', tol=0.0001, solver='liblinear', multi_class='ovr', C=0.3)
+    clf3 = LinearSVC(C=0.1)
+
+    eclf = make_pipeline(
+        make_column_transformer(
+            ('Title', make_pipeline(CountVectorizer(), TfidfTransformer())),
+            ('BodyMarkdown', make_pipeline(CountVectorizer(), TfidfTransformer())),
+            ('Tags', make_pipeline(CountVectorizer(), TfidfTransformer())),
+            (['ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime', 'OwnerCreationDate'], MinMaxScaler()),
+        ),
+        VotingClassifier(estimators=[('sgd', clf1), ('lr', clf2), ('svc', clf3)]),
+    )
+    testing.cv(eclf)
+
+
+if __name__ == '__main__':
+    # ensemble_models()
+    voting()
