@@ -20,7 +20,7 @@ if __name__ == '__main__':
         make_column_transformer(
             ('Title', make_pipeline(CountVectorizer(), TfidfTransformer())),
             ('BodyMarkdown', make_pipeline(CountVectorizer(), TfidfTransformer())),
-            ('Tags', CountVectorizer()),
+            ('Tags', make_pipeline(CountVectorizer(), TfidfTransformer())),
             (['ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime', 'OwnerCreationDate'], MinMaxScaler()),
         ),
         VotingClassifier(estimators=[('sgd', clf1), ('lr', clf2), ('svc', clf3)], voting='hard'),
