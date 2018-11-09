@@ -16,8 +16,8 @@ def ensemble_models():
 
     clf1 = make_pipeline(
         make_column_transformer(
-            ('Title', make_pipeline(CountVectorizer(), TfidfTransformer())),
-            ('BodyMarkdown', make_pipeline(CountVectorizer(), TfidfTransformer())),
+            ('Title', make_pipeline(CountVectorizer(max_df=0.8, min_df=0.00007), TfidfTransformer())),
+            ('BodyMarkdown', make_pipeline(CountVectorizer(max_df=0.8, min_df=0.00007), TfidfTransformer())),
             ('Tags', make_pipeline(CountVectorizer(), TfidfTransformer())),
             (['ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime', 'OwnerCreationDate'], MinMaxScaler()),
         ),
@@ -28,8 +28,8 @@ def ensemble_models():
 
     clf2 = make_pipeline(
         make_column_transformer(
-            ('Title', make_pipeline(CountVectorizer(), TfidfTransformer())),
-            ('BodyMarkdown', make_pipeline(CountVectorizer(), TfidfTransformer())),
+            ('Title', make_pipeline(CountVectorizer(max_df=0.8, min_df=0.00007), TfidfTransformer())),
+            ('BodyMarkdown', make_pipeline(CountVectorizer(max_df=0.8, min_df=0.00007), TfidfTransformer())),
             ('Tags', make_pipeline(CountVectorizer(), TfidfTransformer())),
             (['ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime', 'OwnerCreationDate'], MinMaxScaler()),
         ),
@@ -40,8 +40,8 @@ def ensemble_models():
 
     clf3 = make_pipeline(
         make_column_transformer(
-            ('Title', make_pipeline(CountVectorizer(), TfidfTransformer())),
-            ('BodyMarkdown', make_pipeline(CountVectorizer(), TfidfTransformer())),
+            ('Title', make_pipeline(CountVectorizer(max_df=0.8, min_df=0.00007), TfidfTransformer())),
+            ('BodyMarkdown', make_pipeline(CountVectorizer(max_df=0.8, min_df=0.00007), TfidfTransformer())),
             ('Tags', make_pipeline(CountVectorizer(), TfidfTransformer())),
             (['ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime', 'OwnerCreationDate'], MinMaxScaler()),
         ),
@@ -62,14 +62,14 @@ def voting():
 
     eclf = make_pipeline(
         make_column_transformer(
-            ('Title', make_pipeline(CountVectorizer(), TfidfTransformer())),
-            ('BodyMarkdown', make_pipeline(CountVectorizer(), TfidfTransformer())),
+            ('Title', make_pipeline(CountVectorizer(max_df=0.8, min_df=0.00007), TfidfTransformer())),
+            ('BodyMarkdown', make_pipeline(CountVectorizer(max_df=0.8, min_df=0.00007), TfidfTransformer())),
             ('Tags', make_pipeline(CountVectorizer(), TfidfTransformer())),
             (['ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime', 'OwnerCreationDate'], MinMaxScaler()),
         ),
         VotingClassifier(estimators=[('sgd', clf1), ('lr', clf2), ('svc', clf3)]),
     )
-    testing.cv(eclf)
+    testing.generate_solution(eclf)
 
 
 if __name__ == '__main__':

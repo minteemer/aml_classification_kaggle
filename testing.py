@@ -42,10 +42,11 @@ def cv(model):
 
 def generate_solution(model):
     X_test = data_preparation.get_test_data()
+    model.fit(X, y)
     Y_hat = model.predict(X_test)
     S = pd.DataFrame(Y_hat, columns=['OpenStatus'], index=X_test.index)
     print(S.head())
-    S.to_csv('solution.csv')  # accuracy>0.49 on test
+    S.to_csv('solution.csv')
 
 
 def test_y_hat(Y_hats, model):
