@@ -18,8 +18,7 @@ def prepare(X):
         except ValueError:  # some dates are in different format
             return datetime.strptime(date, "%Y-%m-%d").timestamp()
 
-    creation_timestamps = X["OwnerCreationDate"].map(date_string_to_timestamp)
-    X["OwnerCreationDate"] = (creation_timestamps - creation_timestamps.mean()) / creation_timestamps.std()
+    X["OwnerCreationDate"] = X["OwnerCreationDate"].map(date_string_to_timestamp)
 
     # Creating new column counting tags (more tags -> better post)
     for tag_index in ['Tag1', 'Tag2', 'Tag3', 'Tag4', 'Tag5']:
