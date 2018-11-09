@@ -26,14 +26,14 @@ if __name__ == '__main__':
     data = columns.fit_transform(X)
     testing.tune(data, y, LogisticRegression(),
                  parameters=[{
-                     'penalty': ['l1', 'l2'],
-                     'tol': [1e-4],
-                     'C': [1.0, 10.0, 50.0],
-                     # 'solver': ['lbfgs'],
-                     'max_iter': [100],
-                     'multi_class': ['auto']
+                     'penalty': ['l2'],
+                     'tol': [0.0001],
+                     'C': [0.1, 0.25, 0.3, 0.5, 0.7, 1.0],
+                     'solver': ['liblinear'],
+                     'multi_class': ['ovr']
                  }]
                  )
+
 """
 solver : str, {'newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'}, \
              default: 'liblinear'.

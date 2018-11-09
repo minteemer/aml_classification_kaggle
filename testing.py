@@ -41,7 +41,7 @@ def tune(X, y, model, parameters):
         print()
 
         clf = GridSearchCV(model, parameters, cv=5,
-                           scoring='%s_macro' % score, n_jobs=8)
+                           scoring='%s_macro' % score, n_jobs=-1)
         clf.fit(X_train, y_train)
 
         print("Best parameters set found on development set:")
