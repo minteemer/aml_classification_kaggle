@@ -57,8 +57,7 @@ def ensemble_models():
 
 def voting():
     clf1 = SGDClassifier(loss='hinge', alpha=0.0001, penalty='l2', power_t=0.15, n_jobs=-1)
-    clf2 = LogisticRegression(penalty='l2', tol=0.0001, solver='lbfgs', C=0.3, max_iter=300,
-                              n_jobs=-1)
+    clf2 = LogisticRegression(penalty='l2', tol=0.0001, solver='lbfgs', C=0.3, max_iter=300, n_jobs=-1)
     clf3 = LinearSVC(C=0.1)
 
     eclf = make_pipeline(
@@ -71,7 +70,8 @@ def voting():
         ),
         VotingClassifier(estimators=[('sgd', clf1), ('lr', clf2), ('svc', clf3)], n_jobs=-1),
     )
-    testing.generate_solution(eclf)
+    testing.cv_score(eclf)
+    #testing.generate_solution(eclf)
 
 
 def ada_boost():
