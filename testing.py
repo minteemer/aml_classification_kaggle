@@ -1,6 +1,10 @@
+from sklearn.compose import make_column_transformer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.model_selection import cross_val_score, train_test_split, GridSearchCV
 from sklearn.linear_model import SGDClassifier, LogisticRegression
 from sklearn.metrics import accuracy_score
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC
 
 import pandas as pd
@@ -10,7 +14,16 @@ import data_preparation
 
 TEST_SIZE = 0.3
 
+trans = make_column_transformer(
+    ('Title', make_pipeline(CountVectorizer(), TfidfTransformer(norm="l2"))),
+    ('BodyMarkdown', make_pipeline(CountVectorizer(), TfidfTransformer(norm="l2"))),
+    ('Tags', make_pipeline(CountVectorizer(), TfidfTransformer(norm="l2"))),
+    (['ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime',
+      'OwnerCreationDate', 'CountTags'], StandardScaler()),
+)
+
 X, y = data_preparation.get_train_data()
+X = trans.fit_transform(X)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=TEST_SIZE)
 
 # Data used by ensemble
@@ -118,7 +131,7 @@ def generate_solution(model):
     solution.to_csv('solution.csv')
 
 
-def grid_search(model, tuned_params_dict, print_results=True):
+def grid_search(model, tuned_params_dict, print_results=True, results_to_csv=False):
     """
     Performs grid search cross validation to find optimal parameters for the given model.
     Prints cross validation results.
@@ -136,6 +149,7 @@ def grid_search(model, tuned_params_dict, print_results=True):
     # Assign results
     means = clf.cv_results_['mean_test_score']
     stds = clf.cv_results_['std_test_score']
+    parameters = clf.cv_results_['params']
 
     # Print results if needed
     if print_results:
@@ -147,6 +161,13 @@ def grid_search(model, tuned_params_dict, print_results=True):
         print()
         for mean, std, params in zip(means, stds, clf.cv_results_['params']):
             print("%0.3f (+/-%0.03f) for %r" % (mean, std * 2, params))
+
+    # Save into csv if needed
+    if results_to_csv:
+        model_csv = pd.DataFrame(data=parameters)
+        model_csv.insert(loc=0, column='STD', value=stds)
+        model_csv.insert(loc=0, column='Accuracy', value=means)
+        model_csv.to_csv(r'data/model_analysis.csv')
 
 
 def ensemble_test_super_model(Y_hats, model):
@@ -176,4 +197,9 @@ def ensemble_test_super_model(Y_hats, model):
 
 if __name__ == '__main__':
     # ---- Uncomment needed tool ----
-    grid_search(models['logistic']['base_model'], models['logistic']['params'])
+
+    grid_search(models['sgd']['base_model'], models['sgd']['params'], results_to_csv=True)
+
+    # cv_score(models['logistic']['base_model'])
+
+    pass
