@@ -3,7 +3,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import SGDClassifier, LogisticRegression
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.svm import LinearSVC
-from sklearn.ensemble import VotingClassifier
+from sklearn.ensemble import VotingClassifier, AdaBoostClassifier
 from sklearn.compose import make_column_transformer
 
 import pandas as pd
@@ -57,7 +57,8 @@ def ensemble_models():
 
 def voting():
     clf1 = SGDClassifier(loss='hinge', alpha=0.0001, penalty='l2', power_t=0.15, n_jobs=-1)
-    clf2 = LogisticRegression(penalty='l2', tol=0.0001, solver='lbfgs', C=0.3, max_iter=300, n_jobs=-1)
+    clf2 = LogisticRegression(penalty='l2', tol=0.0001, solver='lbfgs', C=0.3, max_iter=300,
+                              n_jobs=-1)
     clf3 = LinearSVC(C=0.1)
 
     eclf = make_pipeline(
@@ -65,13 +66,36 @@ def voting():
             ('Title', make_pipeline(CountVectorizer(), TfidfTransformer(norm="l2"))),
             ('BodyMarkdown', make_pipeline(CountVectorizer(), TfidfTransformer(norm="l2"))),
             ('Tags', make_pipeline(CountVectorizer(), TfidfTransformer(norm="l2"))),
-            (['ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime', 'OwnerCreationDate'], StandardScaler()),
+            (
+            ['ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime', 'OwnerCreationDate'], StandardScaler()),
         ),
         VotingClassifier(estimators=[('sgd', clf1), ('lr', clf2), ('svc', clf3)], n_jobs=-1),
     )
     testing.generate_solution(eclf)
 
 
+def ada_boost():
+    sgd = SGDClassifier(loss='hinge', alpha=0.0001, penalty='l2', power_t=0.15, n_jobs=-1)
+    logistics = LogisticRegression(penalty='l2', tol=0.0001, solver='lbfgs', multi_class='ovr', C=0.3, max_iter=300,
+                              n_jobs=-1)
+    svc = LinearSVC(C=0.1)
+
+    eclf = make_pipeline(
+        make_column_transformer(
+            ('Title', make_pipeline(CountVectorizer(), TfidfTransformer())),
+            ('BodyMarkdown', make_pipeline(CountVectorizer(), TfidfTransformer())),
+            ('Tags', make_pipeline(CountVectorizer(), TfidfTransformer())),
+            (
+                ['CountTags', 'ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime', 'OwnerCreationDate'],
+                StandardScaler()
+            ),
+        ),
+        AdaBoostClassifier(base_estimator=sgd, n_estimators=100, learning_rate=0.5, algorithm='SAMME'),
+    )
+    testing.cv(eclf)
+
+
 if __name__ == '__main__':
     # ensemble_models()
     voting()
+    # ada_boost()
