@@ -16,7 +16,7 @@ def ensemble_models():
 
     clf1 = make_pipeline(
         make_column_transformer(
-            ('Title', make_pipeline(CountVectorizer(max_df=0.8, min_df=0.00007), TfidfTransformer())),
+            ('Title', make_pipeline(CountVectorizer(min_df=0.00007), TfidfTransformer())),
             ('BodyMarkdown', make_pipeline(CountVectorizer(max_df=0.8, min_df=0.00007), TfidfTransformer())),
             ('Tags', make_pipeline(CountVectorizer(), TfidfTransformer())),
             (['ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime', 'OwnerCreationDate'], MinMaxScaler()),
@@ -28,8 +28,8 @@ def ensemble_models():
 
     clf2 = make_pipeline(
         make_column_transformer(
-            ('Title', make_pipeline(CountVectorizer(max_df=0.8, min_df=0.00007), TfidfTransformer())),
-            ('BodyMarkdown', make_pipeline(CountVectorizer(max_df=0.8, min_df=0.00007), TfidfTransformer())),
+            ('Title', make_pipeline(CountVectorizer(min_df=0.00007), TfidfTransformer())),
+            ('BodyMarkdown', make_pipeline(CountVectorizer(min_df=0.00007), TfidfTransformer())),
             ('Tags', make_pipeline(CountVectorizer(), TfidfTransformer())),
             (['ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime', 'OwnerCreationDate'], MinMaxScaler()),
         ),
@@ -40,8 +40,8 @@ def ensemble_models():
 
     clf3 = make_pipeline(
         make_column_transformer(
-            ('Title', make_pipeline(CountVectorizer(max_df=0.8, min_df=0.00007), TfidfTransformer())),
-            ('BodyMarkdown', make_pipeline(CountVectorizer(max_df=0.8, min_df=0.00007), TfidfTransformer())),
+            ('Title', make_pipeline(CountVectorizer(min_df=0.00007), TfidfTransformer())),
+            ('BodyMarkdown', make_pipeline(CountVectorizer(min_df=0.00007), TfidfTransformer())),
             ('Tags', make_pipeline(CountVectorizer(), TfidfTransformer())),
             (['ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime', 'OwnerCreationDate'], MinMaxScaler()),
         ),
@@ -56,18 +56,18 @@ def ensemble_models():
 
 
 def voting():
-    clf1 = SGDClassifier(loss='log', alpha=0.0001, penalty='l2', power_t=0.15)
-    clf2 = LogisticRegression(penalty='l2', tol=0.0001, solver='liblinear', multi_class='ovr', C=0.3)
+    clf1 = SGDClassifier(loss='hinge', alpha=0.0001, penalty='l2', power_t=0.15, n_jobs=-1)
+    clf2 = LogisticRegression(penalty='l2', tol=0.0001, solver='lbfgs', multi_class='ovr', C=0.3, max_iter=300, n_jobs=-1)
     clf3 = LinearSVC(C=0.1)
 
     eclf = make_pipeline(
         make_column_transformer(
-            ('Title', make_pipeline(CountVectorizer(max_df=0.8, min_df=0.00007), TfidfTransformer())),
-            ('BodyMarkdown', make_pipeline(CountVectorizer(max_df=0.8, min_df=0.00007), TfidfTransformer())),
-            ('Tags', make_pipeline(CountVectorizer(), TfidfTransformer())),
-            (['ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime', 'OwnerCreationDate'], MinMaxScaler()),
+            ('Title', make_pipeline(CountVectorizer(), TfidfTransformer(norm="l2"))),
+            ('BodyMarkdown', make_pipeline(CountVectorizer(), TfidfTransformer(norm="l2"))),
+            ('Tags', make_pipeline(CountVectorizer(), TfidfTransformer(norm="l2"))),
+            (['ReputationAtPostCreation', 'OwnerUndeletedAnswerCountAtPostTime', 'OwnerCreationDate'], StandardScaler()),
         ),
-        VotingClassifier(estimators=[('sgd', clf1), ('lr', clf2), ('svc', clf3)]),
+        VotingClassifier(estimators=[('sgd', clf1), ('lr', clf2), ('svc', clf3)], n_jobs=-1),
     )
     testing.generate_solution(eclf)
 

@@ -35,7 +35,7 @@ def sigle_certain_test(model, x_test):
 
 
 def cv(model):
-    cros_val_sores = cross_val_score(model, X, y, cv=5, n_jobs=4)
+    cros_val_sores = cross_val_score(model, X, y, cv=5, n_jobs=-1)
     print("Average score: %.3f" % np.mean(cros_val_sores))
     print(cros_val_sores)
 
