@@ -23,7 +23,6 @@ trans = make_column_transformer(
 )
 
 X, y = data_preparation.get_train_data()
-X = trans.fit_transform(X)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=TEST_SIZE)
 
 # Data used by ensemble

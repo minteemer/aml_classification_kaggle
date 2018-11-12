@@ -1,4 +1,7 @@
+import numpy
+
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.model_selection import cross_val_score
 from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import SGDClassifier, LogisticRegression
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
@@ -8,6 +11,7 @@ from sklearn.compose import make_column_transformer
 
 import pandas as pd
 
+import data_preparation
 import testing
 
 
@@ -70,8 +74,9 @@ def voting():
         ),
         VotingClassifier(estimators=[('sgd', clf1), ('lr', clf2), ('svc', clf3)], n_jobs=-1),
     )
+
     testing.cv_score(eclf)
-    #testing.generate_solution(eclf)
+    testing.generate_solution(eclf)
 
 
 def ada_boost():
