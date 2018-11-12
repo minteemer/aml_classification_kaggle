@@ -1,29 +1,30 @@
 from sklearn.model_selection import GridSearchCV
 
 import data_preparation
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 
-N = 19  # 17?
-p = 2  # 1?
+criterion = 'gini'
+max_depth = 8
+n_estimators = 17
 
 X_train, X_test, y_train, y_test = data_preparation.get_normalised_numerical_data()
 
 
 def run():
-    m = KNeighborsClassifier(n_neighbors=N, p=p, n_jobs=8)
+    m = MLPClassifier()
     m.fit(X_train, y_train)
     Y_hat = m.predict(X_test)
     accuracy = accuracy_score(Y_hat, y_test)
-    print('Accuracy for KNN - %.3f' % accuracy)
+    print('Accuracy for multilayer perceptron - %.3f' % accuracy)
 
 
 def cv():
-    tuned_parameters = [{
-        'n_neighbors': [17, 19],
-        'p': [1, 2]
-    }]
+    tuned_parameters = [{'activation': ['logistic', 'identity', 'tanh', 'relu'],
+                         'learning_rate': ["constant", "invscaling", "adaptive"],
+                         'solver': ['sgd', 'adam'],
+                         'hidden_layer_sizes': [[4], [40], [400], [50, 50, 50]]}]
 
     scores = ['precision', 'recall']
 
@@ -31,8 +32,8 @@ def cv():
         print("# Tuning hyper-parameters for %s" % score)
         print()
 
-        clf = GridSearchCV(KNeighborsClassifier(), tuned_parameters, cv=5,
-                           scoring='%s_macro' % score, n_jobs=8)
+        clf = GridSearchCV(MLPClassifier(), tuned_parameters, cv=5,
+                           scoring='%s_macro' % score, n_jobs=4)
         clf.fit(X_train, y_train)
 
         print("Best parameters set found on development set:")
@@ -49,10 +50,14 @@ def cv():
         print()
         print("Detailed classification report:")
         print()
+        print("The model is trained on the full development set.")
+        print("The scores are computed on the full evaluation set.")
+        print()
         y_true, y_pred = y_test, clf.predict(X_test)
         print(classification_report(y_true, y_pred))
         print()
 
 
 if __name__ == '__main__':
-    run()
+    cv()
+    # run()
