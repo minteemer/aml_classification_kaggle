@@ -1,10 +1,10 @@
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
-from sklearn.pipeline import Pipeline, make_pipeline
+from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import SGDClassifier, LogisticRegression
-from sklearn.preprocessing import FunctionTransformer, MultiLabelBinarizer, OneHotEncoder, MinMaxScaler, StandardScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.svm import LinearSVC
 from sklearn.ensemble import VotingClassifier
-from sklearn.compose import ColumnTransformer, make_column_transformer
+from sklearn.compose import make_column_transformer
 
 import pandas as pd
 
@@ -23,7 +23,7 @@ def ensemble_models():
         ),
         SGDClassifier(loss='log', alpha=0.0001, penalty='l2', power_t=0.15),
     )
-    Y_hat1 = testing.single_test(clf1)
+    Y_hat1 = testing.ensemble_test_estimator(clf1)
     print('--- SGD DONE ---')
 
     clf2 = make_pipeline(
@@ -35,7 +35,7 @@ def ensemble_models():
         ),
         LogisticRegression(penalty='l2', tol=0.0001, solver='liblinear', multi_class='ovr', C=0.3),
     )
-    Y_hat2 = testing.single_test(clf2)
+    Y_hat2 = testing.ensemble_test_estimator(clf2)
     print('--- Logistic DONE ---')
 
     clf3 = make_pipeline(
@@ -47,17 +47,17 @@ def ensemble_models():
         ),
         LinearSVC(C=0.1),
     )
-    Y_hat3 = testing.single_test(clf3)
+    Y_hat3 = testing.ensemble_test_estimator(clf3)
     print('--- SVC DONE ---')
 
     Y_hat_matrix = pd.DataFrame(data={'Y_hat1': Y_hat1, 'Y_hat2': Y_hat2, 'Y_hat3': Y_hat3})
-    testing.test_y_hat(Y_hat_matrix, SGDClassifier())
+    testing.ensemble_test_super_model(Y_hat_matrix, SGDClassifier())
     print('--- Super model SGD DONE ---')
 
 
 def voting():
     clf1 = SGDClassifier(loss='hinge', alpha=0.0001, penalty='l2', power_t=0.15, n_jobs=-1)
-    clf2 = LogisticRegression(penalty='l2', tol=0.0001, solver='lbfgs', multi_class='ovr', C=0.3, max_iter=300, n_jobs=-1)
+    clf2 = LogisticRegression(penalty='l2', tol=0.0001, solver='lbfgs', C=0.3, max_iter=300, n_jobs=-1)
     clf3 = LinearSVC(C=0.1)
 
     eclf = make_pipeline(
