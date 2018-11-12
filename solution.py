@@ -92,10 +92,10 @@ def ada_boost():
         ),
         AdaBoostClassifier(base_estimator=sgd, n_estimators=100, learning_rate=0.5, algorithm='SAMME'),
     )
-    testing.cv(eclf)
+    testing.cv_score(eclf)
 
 
 if __name__ == '__main__':
     # ensemble_models()
-    voting()
     # ada_boost()
+    voting()

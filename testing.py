@@ -176,11 +176,4 @@ def ensemble_test_super_model(Y_hats, model):
 
 if __name__ == '__main__':
     # ---- Uncomment needed tool ----
-
-    # single_run(models['logistic'])
-
     grid_search(models['logistic']['base_model'], models['logistic']['params'])
-
-    # cv_score(models['logistic'])
-
-    pass
